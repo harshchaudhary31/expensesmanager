@@ -1,26 +1,37 @@
+import tkinter as tk
+from tkinter import messagebox
 import os
 
-def add_expense(expenses):
-    category = input("Enter category: ")
-    amount = float(input("Enter amount: "))
-    expenses.append({"category": category, "amount": amount})
-    print("Expense added successfully!")
-
-def view_expenses(expenses):
-    if not expenses:
-        print("No expenses recorded yet.")
+# Functions for expense management
+def add_expense():
+    category = category_entry.get()
+    amount = amount_entry.get()
+    if not category or not amount:
+        messagebox.showerror("Input Error", "Please fill in both fields.")
         return
-    print("\nExpenses:")
-    for i, expense in enumerate(expenses, 1):
-        print(f"{i}. {expense['category']}: ${expense['amount']:.2f}")
-    total = sum(expense['amount'] for expense in expenses)
-    print(f"Total: ${total:.2f}")
+    try:
+        amount = float(amount)
+        expenses.append({"category": category, "amount": amount})
+        category_entry.delete(0, tk.END)
+        amount_entry.delete(0, tk.END)
+        messagebox.showinfo("Success", "Expense added successfully!")
+        update_expenses_list()
+    except ValueError:
+        messagebox.showerror("Input Error", "Amount must be a number.")
 
-def save_expenses(expenses, filename="expenses.txt"):
+def update_expenses_list():
+    expense_list.delete(0, tk.END)
+    total = 0
+    for i, expense in enumerate(expenses, 1):
+        expense_list.insert(tk.END, f"{i}. {expense['category']}: ${expense['amount']:.2f}")
+        total += expense['amount']
+    total_label.config(text=f"Total: ${total:.2f}")
+
+def save_expenses(filename="expenses.txt"):
     with open(filename, "w") as file:
         for expense in expenses:
             file.write(f"{expense['category']},{expense['amount']}\n")
-    print("Expenses saved to file!")
+    messagebox.showinfo("Saved", "Expenses saved to file!")
 
 def load_expenses(filename="expenses.txt"):
     if not os.path.exists(filename):
@@ -31,23 +42,38 @@ def load_expenses(filename="expenses.txt"):
             for line in file.readlines()
         ]
 
-def main():
-    expenses = load_expenses()
-    while True:
-        print("\nExpense Tracker")
-        print("1. Add Expense")
-        print("2. View Expenses")
-        print("3. Save and Exit")
-        choice = input("Choose an option: ")
-        if choice == "1":
-            add_expense(expenses)
-        elif choice == "2":
-            view_expenses(expenses)
-        elif choice == "3":
-            save_expenses(expenses)
-            break
-        else:
-            print("Invalid choice. Try again!")
+# Initialize expenses
+expenses = load_expenses()
 
-if __name__ == "__main__":
-    main()
+# Create main window
+window = tk.Tk()
+window.title("Expense Tracker")
+window.geometry("400x400")
+
+# Input fields
+tk.Label(window, text="Category:").pack(pady=5)
+category_entry = tk.Entry(window, width=30)
+category_entry.pack(pady=5)
+
+tk.Label(window, text="Amount:").pack(pady=5)
+amount_entry = tk.Entry(window, width=30)
+amount_entry.pack(pady=5)
+
+# Buttons
+tk.Button(window, text="Add Expense", command=add_expense).pack(pady=10)
+tk.Button(window, text="Save Expenses", command=lambda: save_expenses()).pack(pady=5)
+
+# Expense list
+tk.Label(window, text="Expenses:").pack(pady=10)
+expense_list = tk.Listbox(window, width=50, height=10)
+expense_list.pack(pady=5)
+
+# Total label
+total_label = tk.Label(window, text="Total: $0.00", font=("Arial", 12, "bold"))
+total_label.pack(pady=10)
+
+# Load initial data into the list
+update_expenses_list()
+
+# Run the main loop
+window.mainloop()
