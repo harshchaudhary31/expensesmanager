@@ -2,7 +2,7 @@
 
 **Description**
 
-A simple command-line application to track and manage expenses. Users can add expenses, view their expense history, and save data for future use.
+A simple GUI application to track and manage expenses. Users can add expenses, view their expense history, and save data for future use.
 
 ---
 
